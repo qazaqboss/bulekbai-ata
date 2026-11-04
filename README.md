@@ -18,7 +18,7 @@
 
 ```sh
 node build.mjs              # src/page.html + src/scene.js + vendor/anatomy → index.html, banner.html
-node scripts/banner.cjs     # banner.html → banner.png (1280×640 ×2, нужен Playwright)
+node scripts/banner.cjs     # banner.png (README) и og.jpg (превью ссылки), нужен Playwright
 ```
 
 `index.html` самодостаточен (кроме шрифтов Google Fonts) и подходит для GitHub Pages.

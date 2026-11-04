@@ -33,4 +33,6 @@ writeFileSync(join(HERE, "index.html"), out);
 const style = page.match(/<style>[\s\S]*?<\/style>/)[0];
 const banner = read("src/banner.html").replace("<!--PAGE_STYLE-->", () => style).replace("<!--SCENE_SCRIPT-->", () => script);
 writeFileSync(join(HERE, "banner.html"), banner);
+const og = read("src/og.html").replace("<!--PAGE_STYLE-->", () => style).replace("<!--SCENE_SCRIPT-->", () => script);
+writeFileSync(join(HERE, "og.html"), og);
 console.log(`index.html: ${(out.length / 1024).toFixed(0)} KB`);

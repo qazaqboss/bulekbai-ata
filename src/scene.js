@@ -413,6 +413,8 @@
     svg.setAttribute("viewBox", `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`);
     const wide = W >= 1000;
     area = wide ? { x: Math.min(700, W * 0.46), y: 40, w: W - Math.min(700, W * 0.46) - 24, h: H - 80 } : { x: 0, y: H * 0.04, w: W, h: H * 0.5 };
+    // макет может задать свою область сцены: data-area="x,y,w,h" в пикселях
+    if (root.dataset.area) { const [x, y, w, h] = root.dataset.area.split(",").map(Number); area = { x, y, w, h }; }
     dirty = true;
   }
 
