@@ -6,7 +6,7 @@ const path = require("path");
   const b = await chromium.launch();
   const shots = [
     ["banner.html", "banner.png", 1280, 640, 2, "png"],   // README и превью репозитория
-    ["og.html", "og.jpg", 1200, 630, 1.5, "jpeg"],        // превью ссылки в мессенджерах
+    ["og.html", "og.jpg", 1200, 630, 1, "jpeg"],        // превью ссылки в мессенджерах
   ];
   for (const [page, file, width, height, scale, type] of shots) {
     const p = await b.newPage({ viewport: { width, height }, deviceScaleFactor: scale, colorScheme: "dark" });
