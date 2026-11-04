@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Булекбаевы. Два поколения нефти</title>
+<meta name="description" content="Семейная история: Елеу Булекбаев строил первые промыслы Эмбы, его сын Зейнулла Булекбаев открыл подсолевую нефть Актюбинской области.">
+<meta name="theme-color" content="#14120f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Страница читается как разрез скважины: сверху поверхность, в глубине нефть.
+   Фон — живая изометрическая сцена (кит Anatomy), текст — колонка поверх неё. */
+:root{
+  --bg:#f3f1ec;--fg:#1c1a17;--muted:#6b645a;--line:#d6d0c4;--oil:#2a2420;--ochre:#b7752b;--salt:#e4e6e8;--card:#fbfaf7;
+  --panel:rgba(243,241,236,.9);
+  --display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --col:min(640px, calc(46vw - 40px));
+  /* материалы сцены */
+  --m-edge:#2a241d;--f-salt:#e9e6df;--f-salt-x:#d9d5cc;--f-bed:rgba(60,48,36,.28);--f-oil:#2b211a;--f-bore:#1a1612;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14120f;--fg:#ece6db;--muted:#a39a8c;--line:#3a342c;--oil:#0b0a08;--ochre:#d9954a;--salt:#2a2d30;--card:#1c1915;
+  --panel:rgba(20,18,15,.88);
+  --m-edge:#0c0a08;--f-salt:#cfcbc2;--f-salt-x:#b8b3a8;--f-bed:rgba(20,16,12,.35);--f-oil:#1b1511;--f-bore:#0d0b09;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14120f;--fg:#ece6db;--muted:#a39a8c;--line:#3a342c;--oil:#0b0a08;--ochre:#d9954a;--salt:#2a2d30;--card:#1c1915;
+  --panel:rgba(20,18,15,.88);
+  --m-edge:#0c0a08;--f-salt:#cfcbc2;--f-salt-x:#b8b3a8;--f-bed:rgba(20,16,12,.35);--f-oil:#1b1511;--f-bore:#0d0b09;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:1.0625rem;line-height:1.65;overflow-x:hidden}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;line-height:1.08;margin:0}
+a{color:var(--ochre)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--ochre);outline-offset:3px}
+.mono{font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- Сцена на фоне ---------- */
+#scene{position:fixed;inset:0;z-index:0;pointer-events:none}
+#scene svg{width:100%;height:100%;display:block}
+#scene .iso-halo{fill:#000;opacity:.28;filter:blur(14px);transform:translateY(8px)}
+#scene path{vector-effect:non-scaling-stroke}
+.iso-fill{stroke:none}
+.iso-shade,.iso-top{stroke:none}
+.iso-line{fill:none;stroke:var(--m-edge);stroke-width:.6px;stroke-linecap:round;stroke-linejoin:round}
+.iso-line[data-tone="faint"]{stroke-opacity:.35}
+.iso-line[data-tone="lo"]{stroke-opacity:.55}
+.iso-line[data-tone="hi"]{stroke:#f3e6cf;stroke-opacity:.9}
+.iso-line[data-dotted]{stroke-dasharray:.01 4;stroke-width:1.4px;stroke:#7a5a33;stroke-opacity:.55}
+.iso-edge{stroke-opacity:.9}
+.iso-solid{--c:#888}
+.iso-solid>.iso-fill{fill:color-mix(in oklab,var(--c) 72%,#000)}
+.iso-solid>.iso-shade[data-shade="0"]{fill:color-mix(in oklab,var(--c) 52%,#000)}
+.iso-solid>.iso-shade[data-shade="1"]{fill:color-mix(in oklab,var(--c) 66%,#000)}
+.iso-solid>.iso-shade[data-shade="2"]{fill:color-mix(in oklab,var(--c) 80%,#000)}
+.iso-solid>.iso-shade[data-shade="3"]{fill:color-mix(in oklab,var(--c) 92%,#000)}
+.iso-solid>.iso-top{fill:color-mix(in oklab,var(--c) 86%,#fff)}
+.iso-solid>.iso-edge{stroke:color-mix(in oklab,var(--c) 30%,#000)}
+.m-sand{--c:#d6b98a}.m-clay{--c:#a8835c}.m-carb{--c:#8d8070}.m-rock{--c:#5f554b}
+.m-wood{--c:#9a6a3c}.m-roof{--c:#6f4a2a}.m-door{--c:#b4462e}.m-iron{--c:#4b4a48}.m-brick{--c:#9b4f37}
+.m-felt{--c:#e7dcc6}.m-camel{--c:#c79a62}.m-camel-d{--c:#8f6a40}.m-cloth{--c:#6d5a7a}.m-skin{--c:#b0805a}
+.m-steel{--c:#9aa1a6}.m-paint{--c:#c9543a}.m-yellow{--c:#e0b23c}.m-green{--c:#5b7a5a}.m-red{--c:#b9452f}
+.m-pipe{--c:#6f7378}.m-cabin{--c:#d8d2c2}.m-bush{--c:#8e9a6e}
+.brace.m-wood{stroke:#6b4524;stroke-opacity:.9;stroke-width:.7px}
+.brace.m-paint{stroke:#8f3324;stroke-opacity:.85;stroke-width:.6px}
+.cable{stroke:#2b2620;stroke-width:.9px;stroke-opacity:.9}
+.cable.thin{stroke-width:.5px;stroke-opacity:.6}
+.belt{stroke:#3a2a1c;stroke-width:1.2px}
+.rope{stroke:#5b4630;stroke-width:.5px}
+.f-salt{fill:var(--f-salt);stroke:color-mix(in oklab,var(--f-salt) 60%,#000);stroke-width:.6px}
+.f-salt-x{fill:var(--f-salt-x)}
+.f-bed{fill:none;stroke:var(--f-bed);stroke-width:.7px}
+.f-flow{fill:none;stroke:rgba(120,130,140,.35);stroke-width:.6px;stroke-dasharray:6 5}
+.f-oil{fill:var(--f-oil);stroke:#000;stroke-opacity:.5;stroke-width:.6px;transition:fill 1.2s ease}
+.f-oil.on{fill:#d9954a;filter:drop-shadow(0 0 6px rgba(217,149,74,.7))}
+.f-bore{fill:var(--f-bore);stroke:none}
+.f-casing{fill:none;stroke:#9aa1a6;stroke-width:.8px}
+.f-bit{fill:#d9954a;stroke:#2a1a0c;stroke-width:.6px}
+.drop{fill:#17110c}
+.jet{fill:#17110c}
+.pool{fill:#17110c;stroke:none}
+.puff{fill:#bdb6aa}
+.flame{fill:#f0a040;opacity:.9;filter:drop-shadow(0 0 4px rgba(240,140,40,.8))}
+
+/* HUD-карточка в стиле Anatomy */
+.hud{position:fixed;right:20px;bottom:18px;z-index:2;width:min(420px,40vw);padding:12px 14px;border:1px solid var(--line);background:var(--panel);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--muted);
+  display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+.hud b{font-weight:500;color:var(--fg)}
+.hud [data-scene-readout]{color:var(--ochre);text-align:right;font-variant-numeric:tabular-nums}
+.hud .hint{text-transform:uppercase;letter-spacing:.1em}
+.hud .r{text-align:right}
+
+/* ---------- Колонка с текстом ---------- */
+main{position:relative;z-index:1}
+.col{width:var(--col);margin-left:max(24px,3vw);padding-bottom:20px}
+.panel{background:var(--panel);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);padding:40px 36px;margin:0 0 28px}
+.hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding-block:56px 40px}
+.hero .panel{padding:44px 36px}
+.hero h1{font-size:clamp(2.2rem,5.6vw,4.2rem);font-weight:800;letter-spacing:-.02em}
+.hero h1 span{display:block;color:var(--ochre)}
+.hero p.lead{font-size:1.18rem;max-width:34ch;margin:22px 0 0}
+.hero .mono{margin-bottom:18px}
+.scroll-cue{margin-top:28px;display:inline-flex;gap:10px;align-items:center;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.scroll-cue i{display:block;width:1px;height:28px;background:var(--ochre);animation:cue 2.4s ease-in-out infinite}
+@keyframes cue{0%,100%{transform:scaleY(.3);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}}
+
+.lineage{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;font-family:var(--mono);font-size:.82rem}
+.lineage .n{padding:6px 12px;border:1px solid var(--line);border-radius:2px;background:var(--card)}
+.lineage .n.h{border-style:dashed;color:var(--muted)}
+.lineage .n.k{border-color:var(--ochre)}
+.lineage .arr{color:var(--ochre)}
+
+.part-head{display:flex;gap:18px;align-items:baseline;margin-bottom:16px}
+.yr{font-family:var(--display);font-weight:600;font-size:2.2rem;line-height:1;color:var(--ochre)}
+.panel h2{font-size:clamp(1.6rem,3.2vw,2.5rem);font-weight:800}
+.sub{font-style:italic;color:var(--muted);margin:10px 0 26px;font-size:1.08rem}
+.prose p{margin:0 0 1.1em}
+.drop-cap::first-letter{font-family:var(--display);font-weight:800;float:left;font-size:3.4em;line-height:.82;padding:6px 10px 0 0;color:var(--ochre)}
+
+.log{list-style:none;margin:30px 0 0;padding:0;border-left:2px solid var(--fg)}
+.log li{position:relative;padding:0 0 18px 24px;display:grid;grid-template-columns:104px 1fr;gap:14px}
+.log li::before{content:"";position:absolute;left:-7px;top:.45em;width:12px;height:12px;background:var(--bg);border:2px solid var(--fg);border-radius:50%}
+.log li.key::before{background:var(--ochre);border-color:var(--ochre)}
+.log time{font-family:var(--mono);font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.log li>*{min-width:0}
+
+.stratum{background:var(--oil);color:#ece6db;border-color:#000}
+.stratum .mono{color:#a39a8c}
+.stratum .big{font-family:var(--display);font-weight:800;font-size:clamp(2.6rem,6vw,4.4rem);color:#d9954a;line-height:1;font-variant-numeric:tabular-nums;margin:10px 0 18px}
+.stratum h3{font-size:1.6rem;color:#ece6db;margin-bottom:12px}
+.stratum p{color:#d8d0c3;margin:0 0 1em}
+
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:30px}
+.field{background:var(--card);padding:18px 16px}
+.field .y{font-family:var(--mono);color:var(--ochre);font-size:.82rem}
+.field h4{font-family:var(--display);font-weight:600;font-size:1.12rem;margin:6px 0 6px}
+.field p{margin:0;font-size:.9rem;color:var(--muted);line-height:1.5}
+
+blockquote{margin:30px 0;padding:0 0 0 20px;border-left:3px solid var(--ochre);font-style:italic;font-size:1.2rem}
+.awards{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.awards span{font-family:var(--mono);font-size:.76rem;border:1px solid var(--line);padding:6px 10px;border-radius:2px;background:var(--card)}
+.note{background:color-mix(in oklab,var(--salt) 80%,transparent);padding:16px 18px;border-radius:2px;font-size:.93rem;margin-top:24px}
+.note b{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px;font-weight:500}
+
+.tech{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:24px}
+.tech>div{background:var(--card);padding:18px 16px}
+.tech h4{font-family:var(--display);font-size:1rem;margin:0 0 4px}
+.tech .y{font-family:var(--mono);font-size:.78rem;color:var(--ochre)}
+.tech ul{margin:10px 0 0;padding-left:1.1em;font-size:.92rem;line-height:1.5}
+.tech li{margin-bottom:6px}
+
+footer.panel ol{padding-left:1.2em;font-size:.9rem;color:var(--muted)}
+footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
+.sign{margin-top:28px;font-family:var(--display);font-weight:600}
+.credit{font-size:.82rem;color:var(--muted);margin-top:12px}
+
+.theme{position:fixed;top:14px;right:14px;z-index:3;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:7px 10px;cursor:pointer;border-radius:2px}
+
+@media (max-width:999px){
+  :root{--col:auto}
+  .col{margin:0 16px}
+  .hero{min-height:96svh;justify-content:flex-end;padding-bottom:24px}
+  .hero .panel{padding:26px 20px}
+  .panel{padding:28px 20px}
+  .hud{left:16px;right:16px;width:auto;bottom:12px;grid-template-columns:1fr;opacity:0;transition:opacity .4s}
+  body.at-top .hud{opacity:1}
+  .hud .r,.hud [data-scene-readout]{text-align:left}
+  .hud .hint{display:none}
+  .tech{grid-template-columns:1fr}
+  .log li{grid-template-columns:1fr;gap:2px}
+}
+@media (max-width:999px){
+  .hero{min-height:100svh;padding-top:54svh}
+  .hero .panel{margin-bottom:96px}
+  .hero h1{font-size:2.1rem}
+  .hero p.lead{font-size:1.05rem;margin-top:14px}
+  .panel{margin-bottom:58svh}
+  footer.panel{margin-bottom:28px}
+}
+</style>
+</head>
+<body class="at-top">
+<div id="scene" aria-hidden="true">
+  <svg role="img" aria-label="Изометрический разрез степи: слева деревянная вышка Доссора 1911 года с балансиром и паровиком, караван верблюдов и юрта; справа стальная вышка Жанажола 1978 года, бурящая сквозь соль к подсолевой нефти" preserveAspectRatio="xMidYMid meet"><g class="world"></g></svg>
+</div>
+<button class="theme" type="button" aria-label="Переключить тему">Тема</button>
+<div class="hud" aria-live="off">
+  <span><b>Рис. 1</b> · <span data-scene-era>Доссор 1911 — Жанажол 1978</span></span>
+  <span class="r hint">разрез без масштаба</span>
+  <span class="hint">прокрутка поворачивает сцену</span>
+  <span data-scene-readout>скв. №3 · ударно-канатное бурение</span>
+</div>
+
+<main>
+<div class="col">
+  <header class="hero" data-scene="54,1,0,0,-40,0">
+    <div class="panel">
+      <div class="mono">Семейная история · Доссор — Актобе · 1893–2017</div>
+      <h1>Булекбаевы <span>Два поколения нефти</span></h1>
+      <p class="lead">Отец строил первые промыслы Эмбы. Сын нашёл нефть под солью, глубже, чем до него решались искать.</p>
+      <a class="scroll-cue" href="#eleu"><i></i>Вглубь разреза</a>
+    </div>
+  </header>
+
+  <nav class="panel" aria-label="Родословная линия" data-scene="50,1.15,-60,20,-20,0">
+    <div class="mono" style="margin-bottom:14px">Родословная</div>
+    <div class="lineage">
+      <span class="n h">Бөлекбай · предположительно</span><span class="arr">→</span>
+      <span class="n">Елеу · 1893–1953</span><span class="arr">→</span>
+      <span class="n k">Зейнулла · 1932–2017</span><span class="arr">→</span>
+      <span class="n">дочь</span><span class="arr">→</span>
+      <span class="n">Асет</span>
+    </div>
+  </nav>
+
+  <!-- ЧАСТЬ I -->
+  <section class="panel" id="eleu" data-scene="48,1.6,-95,40,-5,0">
+    <div class="part-head"><div class="yr">1893</div><span class="mono">Часть I · Отец</span></div>
+    <h2>Елеу Булекбаев</h2>
+    <p class="sub">Рабочий, волостной секретарь, буровик «Эмбанефти»</p>
+    <div class="prose">
+      <p class="drop-cap">Он родился в 1893 году в Гурьевском уезде, на земле нынешней Атырауской области. В солончаках между Гурьевом и Эмбой тогда только начинали бурить первые неглубокие скважины.</p>
+      <p>С 1910 года, с семнадцати лет, Елеу работал у английских нефтепромышленников. Иностранные общества вели разведку на Эмбе, и молодые казахи из окрестных аулов шли к ним рабочими. Так он оказался рядом с самым началом казахстанской нефти.</p>
+      <p>После революции, в 1920 году, он строил нефтепромыслы Доссор и Макат. Потом на время ушёл в управление: в 1921–1924 годах был секретарём Карабайлинского волостного исполкома, в 1924–1929 годах — заместителем председателя и секретарём Ракушинского волисполкома.</p>
+      <p>В 1929 году Елеу вернулся к нефти и остался с ней до конца. Почти четверть века он проработал в тресте «Эмбанефть»: буровым рабочим геологоразведочной партии, затем заведующим конторой гужевого транспорта. Без конной и верблюжьей тяги промыслы в безводной степи не жили: так возили воду, трубы, людей и продовольствие.</p>
+      <p>В 1932 году в посёлке нефтепромысла Доссор у него родился сын Зейнулла. Елеу был награждён Почётной грамотой Верховного Совета Казахской ССР и ушёл из жизни в 1953 году. Сын в тот год учился в Москве на нефтяного геолога.</p>
+    </div>
+    <ol class="log">
+      <li><time>1893</time><span>Родился в Гурьевском уезде</span></li>
+      <li><time>1910–1919</time><span>Рабочий у английских нефтепромышленников</span></li>
+      <li><time>1920</time><span>Строительство промыслов Доссор и Макат</span></li>
+      <li><time>1921–1924</time><span>Секретарь Карабайлинского волисполкома</span></li>
+      <li><time>1924–1929</time><span>Зам. председателя, секретарь Ракушинского волисполкома</span></li>
+      <li class="key"><time>1929–1953</time><span>Трест «Эмбанефть»: буровой рабочий, заведующий конторой гужевого транспорта</span></li>
+      <li class="key"><time>1932</time><span>В Доссоре родился сын Зейнулла</span></li>
+      <li><time>1953</time><span>Ушёл из жизни</span></li>
+    </ol>
+    <div class="note"><b>Что подтверждено</b>Биография Елеу взята из справочника «Нефтяники Казахстана». Отчество Зейнуллы, место и год его рождения совпадают с жизнью Елеу. Прямого документа о родстве в открытых источниках нет; его может дать личное дело в архиве «Эмбанефти» (ныне АО «Эмбамунайгаз»).</div>
+  </section>
+
+  <section class="panel stratum" aria-label="Доссор, 1911" data-scene="46,1.85,-95,55,20,1">
+    <div class="mono">Место, где всё началось · Доссор</div>
+    <div class="big">29.04.1911</div>
+    <h3>Фонтан скважины № 3</h3>
+    <p>С глубины 225–226 метров, из отложений средней юры, ударил мощный нефтяной фонтан. За тридцать часов скважина выбросила около 16 700 пудов нефти — это примерно 270 тонн. Фонтан прекратился, когда обрушились стенки ствола и образовалась песчаная пробка.</p>
+    <p>С Доссора принято вести промышленную добычу нефти в Казахстане. Через девять лет здесь будет строить промысел Елеу, а через двадцать один год родится его сын.</p>
+  </section>
+
+  <section class="panel" data-scene="56,1.25,-40,10,-30,0">
+    <div class="part-head"><div class="yr">Техника</div><span class="mono">Две эпохи</span></div>
+    <h2>Чем бурили</h2>
+    <p class="sub">На фоне — те же машины, собранные из деталей и движущиеся так, как работали</p>
+    <div class="tech">
+      <div>
+        <div class="y">1910–1920-е · Эмба</div>
+        <h4>Ударно-канатное бурение</h4>
+        <ul>
+          <li>Деревянная вышка-пирамида с кронблоком на вершине.</li>
+          <li>Паровой котёл и машина вращают ленточное колесо; через шатун оно качает балансир.</li>
+          <li>Балансир поднимает и роняет на канате тяжёлое долото — порода дробится ударами.</li>
+          <li>Воду, трубы и людей возят на верблюдах и лошадях.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="y">1960–1980-е · Актюбинская обл.</div>
+        <h4>Роторное бурение</h4>
+        <ul>
+          <li>Стальная вышка, талевая система с крюком и вертлюгом.</li>
+          <li>Ротор на полу буровой вращает ведущую трубу и колонну с долотом.</li>
+          <li>Лебёдку и насосы для промывочного раствора крутят дизели.</li>
+          <li>Глубины в километры: колонну наращивают трубами со стеллажа.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ЧАСТЬ II -->
+  <section class="panel" id="zeinulla" data-scene="60,1.4,95,40,-40,0" data-drill>
+    <div class="part-head"><div class="yr">1932</div><span class="mono">Часть II · Сын</span></div>
+    <h2>Зейнулла Елеуович Булекбаев</h2>
+    <p class="sub">Геолог, первооткрыватель, почётный гражданин Актобе</p>
+    <div class="prose">
+      <p class="drop-cap">Он родился 16 июня 1932 года в посёлке нефтепромысла Доссор, среди буровых вышек, на которых работал отец. В 1955 году окончил Московский нефтяной институт имени Губкина и вернулся на Эмбу техником по исследованию скважин.</p>
+      <p>Дальше всё шло по ступеням: геолог и старший геолог цеха бурения НПУ «Кошкар», главный геолог нефтепромысла Сагыз. В 1959 году он поступил в аспирантуру Института геологических наук, которым руководил академик Каныш Сатпаев. Научным руководителем стал Павел Авров, знавший недра Гурьевской и Актюбинской областей по полевой работе.</p>
+      <p>В 1962 году Зейнулла защитил диссертацию о перспективах нефтегазоносности восточной части Прикаспийской впадины. И пошёл не на кафедру, а снова в поле: главным геологом нефтеразведочной экспедиции треста «Актюбнефтеразведка».</p>
+      <p>Главная его мысль была смелой. Под толщей соли, считал он, лежат древние палеозойские пласты, и подняты они выше, чем принято было думать. В 1965–1966 годах под его руководством трест пробурил параметрические скважины поперёк Уральской зоны. Догадка подтвердилась: продуктивность подсолевых отложений доказали на Кенкияке (1971), затем на Жанажоле (1978) и Алибекмоле (1986). Это было первое открытие подсолевой палеозойской нефти в Прикаспийской впадине.</p>
+      <p>31 июля 1978 года скважина № 4 на Жанажоле дала мощный приток из подсолевых отложений с глубины 2 800–2 894 метров. Именно её бурит вышка справа: прокрутите раздел — и долото пройдёт соль.</p>
+    </div>
+
+    <blockquote>О нём на западе Казахстана говорили, что он прикладывает ухо к земле и слышит, есть ли там нефть.</blockquote>
+
+    <div class="fields">
+      <div class="field"><div class="y">1963</div><h4>Акжар</h4><p>Нефть в надсолевых отложениях</p></div>
+      <div class="field"><div class="y">1964</div><h4>Кенкияк</h4><p>Утверждён подготовленный им подсчёт запасов (месторождение открыто в 1959-м)</p></div>
+      <div class="field"><div class="y">1965</div><h4>Каратобе</h4><p>Нефть в надсолевых отложениях</p></div>
+      <div class="field"><div class="y">1971</div><h4>Кенкияк, подсоль</h4><p>Продуктивность палеозоя под солью подтверждена</p></div>
+      <div class="field"><div class="y">1978</div><h4>Жанажол</h4><p>Скв. № 4, приток с 2&nbsp;800–2&nbsp;894&nbsp;м</p></div>
+      <div class="field"><div class="y">1986</div><h4>Алибекмола</h4><p>Поисковая скв. № 5; поиски начаты в 1983-м</p></div>
+    </div>
+
+    <div class="prose" style="margin-top:34px">
+      <p>Газ этих месторождений пришёл в дома Актобе, и город сделал его своим почётным гражданином. Он составил карту нефтегазоносности Актюбинской области, участвовал в составлении карт перспектив всей Прикаспийской впадины и прогноза нефтегазоносности Казахстана, стал соавтором справочника «Нефтяные и газовые месторождения Казахстана». Более ста статей, четыре монографии.</p>
+      <p>С 1999 года он преподавал в Актюбинском филиале КазНТУ, с 2000 года был главным геологом АО «Компания ГИС» и до последних дней консультировал нефтяников со всего бывшего Союза. Зейнулла Елеуович ушёл из жизни 18 декабря 2017 года в Актобе, на 86-м году.</p>
+    </div>
+
+    <div class="awards" aria-label="Награды и звания">
+      <span>Орден «Знак Почёта»</span>
+      <span>Почётный разведчик недр СССР · 1981</span>
+      <span>Почётный разведчик недр РК · 2002</span>
+      <span>Почётный гражданин Актобе</span>
+      <span>Кандидат геол.-минерал. наук · 1962</span>
+    </div>
+    <div class="note"><b>Об авторстве открытий</b>Открытия в Прикаспии — работа больших коллективов геологов, геофизиков и буровиков. В публикациях вклад в открытие Кенкияка, Жанажола и Алибекмолы отмечают и у других специалистов, например у И. Б. Дальяна. Даты Акжара и Каратобе приведены по очерку на myaktobe.kz; независимого подтверждения им пока не найдено.</div>
+  </section>
+
+  <section class="panel" id="thread" data-scene="64,1,0,0,-40,0">
+    <div class="part-head"><div class="yr">1910–1986</div><span class="mono">Нить</span></div>
+    <h2>Одна нефть на двоих</h2>
+    <p class="sub">От скважины в двести метров на Доссоре до подсолевых горизонтов Жанажола</p>
+    <div class="prose">
+      <p>Елеу пришёл к нефти, когда её добывали с глубины в двести с небольшим метров, а грузы по степи возили на верблюдах. Его сын ушёл почти на три километра вглубь, под соляную толщу, куда поколение отца заглянуть не могло.</p>
+      <p>Между первой работой отца у англичан в 1910 году и открытием Алибекмолы в 1986-м прошло больше семидесяти лет. Вместе они прошли почти всю историю казахстанской нефти: от её начала на Эмбе до крупнейших месторождений Актюбинской области.</p>
+    </div>
+  </section>
+
+  <footer class="panel" data-scene="58,1,0,0,-40,0">
+    <div class="mono">Источники</div>
+    <ol>
+      <li>Справочник «Нефтяники Казахстана»: Булекбаев Елеу. neftegaz.kz</li>
+      <li><a href="https://myaktobe.kz/archives/4916">«Зинулла Булекбаев. Первооткрыватель нефтяных месторождений»</a>. История Актюбинской области, myaktobe.kz, 2010</li>
+      <li><a href="https://informburo.kz/novosti/skonchalsya-pervootkryvatel-neftyanyh-mestorozhdeniy-rk-zeynulla-bulekbaev-.html">«Скончался первооткрыватель нефтяных месторождений РК Зейнулла Булекбаев»</a>. Informburo.kz, 19.12.2017</li>
+      <li><a href="https://tengrinews.kz/kazakhstan_news/umer-pervootkryvatel-krupneisix-mestorozdenii-nefti-333590/">«Умер первооткрыватель крупнейших месторождений нефти Казахстана»</a>. Tengrinews.kz, 20.12.2017</li>
+      <li><a href="https://diapazon.kz/news/78931-skonchalsya-pervootkryvatel-mestorozhdeniy-kenkiyak-i-zhanazhol">«Умер первооткрыватель месторождений Кенкияк и Жанажол»</a>. Diapazon.kz, 2017</li>
+      <li><a href="https://www.inform.kz/ru/znamenitoe-neftyanoe-mestorozhdenie-dossor-otmechaet-110-letniy-yubiley_a3782575">«Знаменитое нефтяное месторождение Доссор отмечает 110-летний юбилей»</a>. Казинформ, 2021; «Месторождению Доссор — 110 лет», АО «Эмбамунайгаз», emba.kz</li>
+      <li><a href="https://gem.wiki/Kenkiyak_Oil_and_Gas_Field_(Kazakhstan)">Kenkiyak Oil and Gas Field</a>. Global Energy Monitor; сведения о Жанажоле (скв. № 4, 31.07.1978) и Алибекмоле (скв. № 5, 1986) — по справочным описаниям месторождений</li>
+    </ol>
+    <p class="sign">Составил внук — Асет Алиби, 2026</p>
+    <p class="credit">Фоновая сцена построена китом <a href="https://github.com/wheresryan22/anatomy">Anatomy</a> (MIT): изометрические твёрдые детали, четыре тона светотени, порядок художника. Разрез схематичный, глубины без масштаба.</p>
+  </footer>
+</div>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement, btn = document.querySelector(".theme");
+  let saved = null;
+  try { saved = localStorage.getItem("theme"); } catch (e) {}
+  if (saved) root.dataset.theme = saved;
+  btn.addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
+  });
+  const top = () => document.body.classList.toggle("at-top", scrollY < innerHeight * 0.5);
+  addEventListener("scroll", top, { passive: true }); top();
+})();
+</script>
+<!--SCENE_SCRIPT-->
+</body>
+</html>
