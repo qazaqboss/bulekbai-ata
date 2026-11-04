@@ -28,4 +28,9 @@ const code = `"use strict";\n${kit}${lathe}${scene}`.replace(/<\/(script)/gi, "<
 const script = `<script>\n${code}\n</script>`;
 const out = page.replace("<!--SCENE_SCRIPT-->", () => script);
 writeFileSync(join(HERE, "index.html"), out);
+
+// Баннер: те же стили и сцена; PNG снимается скриптом scripts/banner.cjs
+const style = page.match(/<style>[\s\S]*?<\/style>/)[0];
+const banner = read("src/banner.html").replace("<!--PAGE_STYLE-->", () => style).replace("<!--SCENE_SCRIPT-->", () => script);
+writeFileSync(join(HERE, "banner.html"), banner);
 console.log(`index.html: ${(out.length / 1024).toFixed(0)} KB`);

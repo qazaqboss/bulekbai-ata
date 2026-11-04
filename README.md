@@ -1,5 +1,7 @@
 # Булекбаевы. Два поколения нефти
 
+![Булекбаевы. Два поколения нефти: разрез степи с вышками Доссора 1911 и Жанажола 1978](banner.png)
+
 Семейная история в виде одностраничного сайта: Елеу Булекбаев (1893–1953) строил первые промыслы Эмбы, его сын Зейнулла Елеуович Булекбаев (1932–2017) открыл подсолевую нефть Актюбинской области.
 
 ## Фоновая сцена
@@ -15,7 +17,8 @@
 ## Сборка
 
 ```sh
-node build.mjs   # src/page.html + src/scene.js + vendor/anatomy → index.html
+node build.mjs              # src/page.html + src/scene.js + vendor/anatomy → index.html, banner.html
+node scripts/banner.cjs     # banner.html → banner.png (1280×640 ×2, нужен Playwright)
 ```
 
 `index.html` самодостаточен (кроме шрифтов Google Fonts) и подходит для GitHub Pages.
