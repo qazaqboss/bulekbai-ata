@@ -3,7 +3,30 @@
 // Справа — Жанажол, 1978: стальная вышка роторного бурения, ротор, талевый блок, насосы, трубы.
 // Под землёй — пласты: надсолевые, соль (купол), подсолевой палеозой с нефтью.
 // Каждый кадр сцена заново проецируется камерой с текущим азимутом, поэтому при прокрутке она поворачивается в 3D.
-(() => {
+((k0, G0) => {
+  // Кэш геометрии: пока камера стоит, одинаковые детали не пересчитываются (важно для телефонов).
+  const memo = { key: "", map: new Map() };
+  const isCam = (v) => v && typeof v === "object" && Array.isArray(v.origin);
+  function cached(lib, names) {
+    const out = Object.create(lib);
+    for (const name of names) {
+      const fn = lib[name];
+      out[name] = (...args) => {
+        const cam = args.find(isCam);
+        if (cam) {
+          const ck = cam.origin[0].toFixed(2) + "," + cam.origin[1].toFixed(2) + "," + cam.scale.toFixed(4) + "," + cam.azimuth.toFixed(3) + "," + cam.elevation.toFixed(3);
+          if (ck !== memo.key || memo.map.size > 6000) { memo.key = ck; memo.map.clear(); }
+        }
+        const key = name + JSON.stringify(args, (k, v) => (isCam(v) ? 0 : typeof v === "number" ? Math.round(v * 100) / 100 : v));
+        let hit = memo.map.get(key);
+        if (hit === undefined) { hit = fn(...args); memo.map.set(key, hit); }
+        return hit;
+      };
+    }
+    return out;
+  }
+  const k = cached(k0, ["slabOf", "cylinder", "haloOf", "ring", "sideArc", "radialTicks"]);
+  const G = cached(G0, ["prismOf", "disc", "sphereOf", "solidOf", "spokesOf", "circleOf", "arcOf"]);
   const root = document.getElementById("scene");
   if (!root) return;
   const svg = root.querySelector("svg");
@@ -61,7 +84,8 @@
   const ball = (c, r, cls) => S(G.sphereOf(c, r, P, { steps: 24 }), cls);
 
   // ---------- Земля: блок-разрез ----------
-  function ground(state) {
+  let groundKey = "", groundStatic = "";
+  function groundBase() {
     const out = [];
     out.push(`<path class="iso-halo" d="${k.haloOf(BLOCK, Z.base, -Z.base, P)}"/>`);
     out.push(S(k.slabOf(BLOCK, Z.base, Z.subsalt - Z.base, P, 3), "m-rock", { crease: "none" }));
@@ -86,6 +110,21 @@
     }
     // внутрисолевые линии течения
     for (const t of [0.35, 0.7]) out.push(line3(xs.map((x) => [x, Y1, lerp(saltBottom(x), saltTop(x), t)]), "f-flow"));
+    // Риска «−» глубины по ребру: метки 0 / 1 / 2 / 3 км условно
+    const ticks = [];
+    for (let z = 0; z >= Z.base + 2; z -= 10) ticks.push(k.segment([X1, Y1, z], [X1 + (z % 50 === 0 ? 5 : 2.5), Y1 + (z % 50 === 0 ? 5 : 2.5) * 0, z], P));
+    out.push(L(ticks.join(""), { tone: "faint" }));
+
+    // тропа каравана на поверхности
+    out.push(L(k.onTop(routePoints(48), 0, P, true), { tone: "faint", dotted: true }));
+    return out.join("");
+  }
+  function ground(state) {
+    const ck = memo.key + "|" + P.scale;
+    if (ck !== groundKey) { groundKey = ck; groundStatic = groundBase(); }
+    const out = [groundStatic];
+    const xs = [];
+    for (let x = X0; x <= X1 + 0.1; x += 5) xs.push(x);
     // линза нефти Доссора над крылом купола (средняя юра)
     const lens = [];
     for (let i = 0; i <= 28; i++) {
@@ -98,11 +137,6 @@
     for (let x = D2[0] - 70; x <= D2[0] + 70; x += 4) trap.push([x, Y1, saltBottom(x) - 1.5]);
     for (let x = D2[0] + 70; x >= D2[0] - 70; x -= 4) trap.push([x, Y1, Z.cover - 18 + 6 * Math.exp(-(((x - D2[0]) / 40) ** 2))]);
     out.push(poly(trap, "f-oil f-oil-z" + (state.found ? " on" : "")));
-    // Риска «−» глубины по ребру: метки 0 / 1 / 2 / 3 км условно
-    const ticks = [];
-    for (let z = 0; z >= Z.base + 2; z -= 10) ticks.push(k.segment([X1, Y1, z], [X1 + (z % 50 === 0 ? 5 : 2.5), Y1 + (z % 50 === 0 ? 5 : 2.5) * 0, z], P));
-    out.push(L(ticks.join(""), { tone: "faint" }));
-
     // Ствол скважин на срезе
     const bore = (x, zTo, cls) => poly([[x - 1.3, Y1, 0], [x + 1.3, Y1, 0], [x + 1.3, Y1, zTo], [x - 1.3, Y1, zTo]], cls);
     out.push(bore(D1[0], BORE1 + state.tool, "f-bore"));
@@ -115,8 +149,6 @@
     out.push(`<circle class="f-bit" cx="${bit[0].toFixed(1)}" cy="${bit[1].toFixed(1)}" r="2.6"/>`);
     const tool = k.iso([D1[0], Y1, BORE1 + state.tool], P);
     out.push(`<circle class="f-bit f-bit-1" cx="${tool[0].toFixed(1)}" cy="${tool[1].toFixed(1)}" r="2"/>`);
-    // тропа каравана на поверхности
-    out.push(L(k.onTop(routePoints(48), 0, P, true), { tone: "faint", dotted: true }));
     return out.join("");
   }
 
@@ -291,7 +323,8 @@
   }
 
   // Частицы фонтана — нефть, летящая выше кронблока
-  const DROPS = Array.from({ length: 150 }, () => ({ a: rnd() * TAU, v: 0.8 + rnd() * 0.3, sp: 1 + rnd() * 14, ph: rnd(), r: 0.7 + rnd() * 1.5 }));
+  const PHONE = matchMedia("(max-width: 999px)").matches;
+  const DROPS = Array.from({ length: PHONE ? 70 : 150 }, () => ({ a: rnd() * TAU, v: 0.8 + rnd() * 0.3, sp: 1 + rnd() * 14, ph: rnd(), r: 0.7 + rnd() * 1.5 }));
   function drops(state, t, cx, cy) {
     if (state.gush < 0.01) return;
     const g = 120;
@@ -412,7 +445,7 @@
     W = r.width; H = r.height;
     svg.setAttribute("viewBox", `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`);
     const wide = W >= 1000;
-    area = wide ? { x: Math.min(700, W * 0.46), y: 40, w: W - Math.min(700, W * 0.46) - 24, h: H - 80 } : { x: 0, y: H * 0.04, w: W, h: H * 0.5 };
+    area = wide ? { x: Math.min(700, W * 0.46), y: 40, w: W - Math.min(700, W * 0.46) - 24, h: H - 80 } : { x: 0, y: H * 0.03, w: W, h: H * 0.45 };
     // макет может задать свою область сцены: data-area="x,y,w,h" в пикселях
     if (root.dataset.area) { const [x, y, w, h] = root.dataset.area.split(",").map(Number); area = { x, y, w, h }; }
     dirty = true;
@@ -484,14 +517,20 @@
     svg.classList.toggle("found", state.found);
   }
 
-  let frame = 0, last = 0, clock = 0, dirty = true, visible = true;
+  let frame = 0, last = 0, clock = 0, dirty = true, visible = true, lastDraw = -1e9, drawCost = 0;
+  const panels = [...document.querySelectorAll(".panel")];
+  function covered() {
+    if (W >= 1000) return false;
+    const top = area.y + area.h * 0.1, bottom = area.y + area.h * 0.9;
+    return panels.some((el) => { const r = el.getBoundingClientRect(); return r.top <= top && r.bottom >= bottom; });
+  }
   function tick(now) {
     const dt = last ? Math.min((now - last) / 1000, 1 / 20) : 1 / 60;
     last = now;
     const calm = still.matches;
     if (!calm) clock += dt;
-    const ease = (a, b, tau) => (calm ? b : a + (b - a) * (1 - Math.exp(-dt / tau)));
-    state.az = ease(state.az, target.az + (calm ? 0 : 1.6 * Math.sin(clock / 6)), 0.6);
+    const ease = (a, b, tau) => (calm || Math.abs(b - a) < 2e-3 ? b : a + (b - a) * (1 - Math.exp(-dt / tau)));
+    state.az = ease(state.az, target.az + (calm || PHONE ? 0 : 1.6 * Math.sin(clock / 6)), 0.6);
     state.el = ease(state.el, 30 + 4 * (state.zoom - 1), 0.6);
     state.zoom = ease(state.zoom, target.zoom, 0.6);
     state.fx = ease(state.fx, target.fx, 0.6);
@@ -513,7 +552,15 @@
     const stand = (state.drill * 14) % 1;
     state.block = 32 + 104 * (1 - stand) + (calm ? 0 : 0.6 * Math.sin(clock * 1.3));
     if (Math.abs(state.drill - prevDrill) > 1e-4) dirty = true;
-    draw(clock);
+    // На телефоне: не рисуем, пока сцену целиком закрывает текстовая карточка,
+    // и держим частоту кадров по силам устройства (кадр дороже 20 мс — рисуем реже).
+    const due = now - lastDraw >= Math.max(1000 / 40, drawCost * 1.6);
+    if ((calm || due) && !covered()) {
+      const t0 = performance.now();
+      draw(clock);
+      drawCost = drawCost * 0.8 + (performance.now() - t0) * 0.2;
+      lastDraw = now;
+    }
     say();
     frame = visible && !document.hidden && !calm ? requestAnimationFrame(tick) : 0;
     if (calm) frame = 0;
@@ -528,4 +575,4 @@
   Object.assign(state, { az: target.az, zoom: target.zoom, fx: target.fx, fy: target.fy, fz: target.fz, drill: target.drill });
   run();
   window.__scene = { state, target, draw };
-})();
+})(k, G);
