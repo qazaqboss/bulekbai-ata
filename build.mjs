@@ -22,9 +22,10 @@ function namespace(name, source, prelude = "") {
 const kit = namespace("k", read("vendor/anatomy/iso-kit.mjs"));
 const lathe = namespace("G", read("vendor/anatomy/lathe.mjs"), "const { cameraOf, iso, pathOf } = k;");
 const scene = read("src/scene.js");
+const music = read("src/music.js");
 const page = read("src/page.html");
 
-const code = `"use strict";\n${kit}${lathe}${scene}`.replace(/<\/(script)/gi, "<\\/$1");
+const code = `"use strict";\n${kit}${lathe}${scene}\n${music}`.replace(/<\/(script)/gi, "<\\/$1");
 const script = `<script>\n${code}\n</script>`;
 const out = page.replace("<!--SCENE_SCRIPT-->", () => script);
 writeFileSync(join(HERE, "index.html"), out);
