@@ -119,6 +119,9 @@ main{position:relative;z-index:1}
 .panel h2{font-size:clamp(1.6rem,3.2vw,2.5rem);font-weight:800}
 .sub{font-style:italic;color:var(--muted);margin:10px 0 26px;font-size:1.08rem}
 .prose p{margin:0 0 1.1em}
+.ch{font-family:var(--display);font-weight:600;font-size:1.2rem;line-height:1.2;margin:38px 0 14px;display:flex;flex-direction:column;gap:6px}
+.prose>.ch:first-child{margin-top:4px}
+.ch span{font-family:var(--mono);font-weight:400;font-size:.74rem;letter-spacing:.1em;color:var(--ochre)}
 .drop-cap::first-letter{font-family:var(--display);font-weight:800;float:left;font-size:3.4em;line-height:.82;padding:6px 10px 0 0;color:var(--ochre)}
 
 .log{list-style:none;margin:30px 0 0;padding:0;border-left:2px solid var(--fg)}
@@ -181,6 +184,16 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
 .listen{margin-top:16px;margin-left:24px;display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ochre);background:none;border:1px solid var(--ochre);padding:8px 12px;cursor:pointer;border-radius:2px}
 .listen.on{background:var(--ochre);color:var(--bg)}
+.tilt{display:none}
+.drag-hint{display:none}
+/* Плавное появление блоков при прокрутке */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease,cubic-bezier(.2,.7,.2,1)),transform .8s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.photo.rv{transform:translateY(26px) rotate(-1.2deg)}
+.photo.rv.in{transform:none}
+.field.rv{transform:translateY(14px) scale(.98)}
+.field.rv.in{transform:none}
+@media (prefers-reduced-motion:reduce){.rv,.photo.rv,.field.rv{opacity:1;transform:none;transition:none}}
 .theme{position:fixed;top:14px;right:14px;z-index:3;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
   background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:7px 10px;cursor:pointer;border-radius:2px}
 
@@ -205,6 +218,10 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
   .music{top:auto;right:12px;bottom:max(14px,env(safe-area-inset-bottom));width:44px;height:44px;padding:0;justify-content:center;border-radius:50%;box-shadow:0 6px 18px -8px rgba(0,0,0,.5)}
   .music [data-music-label]{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .listen{margin-left:0}
+  .tilt{display:inline-flex;margin-top:12px;margin-right:8px;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--fg);background:none;border:1px solid var(--line);padding:8px 12px;border-radius:2px;cursor:pointer}
+  .tilt-on .tilt{border-color:var(--ochre);color:var(--ochre)}
+  .drag-hint{display:block;position:fixed;left:0;right:0;top:calc(50svh + 14px);text-align:center;font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);pointer-events:none;transition:opacity .4s}
+  body:not(.at-top) .drag-hint{opacity:0}
   /* подпись к сцене — узкая строка прямо под рисунком, только на первом экране */
   .hud{top:calc(50svh - 6px);bottom:auto;left:16px;right:16px;padding:0;border:0;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;font-size:.66rem;gap:2px}
   .hud>span:first-child{color:var(--muted)}
@@ -2674,8 +2691,11 @@ return { dot3, add3, sub3, mul3, len3, unit3, cross3, lerp3, viewOf, lightOf, sc
     const calm = still.matches;
     if (!calm) clock += dt;
     const ease = (a, b, tau) => (calm || Math.abs(b - a) < 2e-3 ? b : a + (b - a) * (1 - Math.exp(-dt / tau)));
-    state.az = ease(state.az, target.az + (calm || PHONE ? 0 : 1.6 * Math.sin(clock / 6)), 0.6);
-    state.el = ease(state.el, 30 + 4 * (state.zoom - 1), 0.6);
+    // палец и наклон телефона добавляются к повороту от прокрутки
+    if (!drag.on) drag.az *= Math.exp(-dt / 2.5); // отпущенная сцена плавно возвращается
+    const userAz = clamp(drag.az + tilt.az, -40, 40), userEl = clamp(tilt.el, -8, 10);
+    state.az = ease(state.az, clamp(target.az + userAz + (calm || PHONE ? 0 : 1.6 * Math.sin(clock / 6)), 24, 82), drag.on ? 0.08 : 0.5);
+    state.el = ease(state.el, 30 + 4 * (state.zoom - 1) + userEl, 0.4);
     state.zoom = ease(state.zoom, target.zoom, 0.6);
     state.fx = ease(state.fx, target.fx, 0.6);
     state.fy = ease(state.fy, target.fy, 0.6);
@@ -2710,6 +2730,55 @@ return { dot3, add3, sub3, mul3, len3, unit3, cross3, lerp3, viewOf, lightOf, sc
     if (calm) frame = 0;
   }
   const run = () => { if (!frame) { last = 0; frame = requestAnimationFrame(tick); } };
+  // ---------- Управление с телефона ----------
+  // 1) палец: провести по свободному месту (не по тексту) — сцена поворачивается
+  const drag = { on: false, x0: 0, y0: 0, az0: 0, az: 0, lock: "" };
+  const free = (el) => !el.closest(".panel, button, a, .hud");
+  addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    if (e.touches.length !== 1 || !free(e.target)) return;
+    Object.assign(drag, { on: true, x0: t.clientX, y0: t.clientY, az0: drag.az, lock: "" });
+    run();
+  }, { passive: true });
+  addEventListener("touchmove", (e) => {
+    if (!drag.on) return;
+    const t = e.touches[0], dx = t.clientX - drag.x0, dy = t.clientY - drag.y0;
+    if (!drag.lock && Math.hypot(dx, dy) > 8) drag.lock = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    if (drag.lock === "x") { drag.az = clamp(drag.az0 + dx * 0.25, -40, 40); run(); }
+  }, { passive: true });
+  addEventListener("touchend", () => { drag.on = false; }, { passive: true });
+  // мышью на компьютере — то же самое, если тянуть по сцене
+  addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse" || !free(e.target)) return; Object.assign(drag, { on: true, x0: e.clientX, y0: e.clientY, az0: drag.az, lock: "x" }); run(); });
+  addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" && drag.on) { drag.az = clamp(drag.az0 + (e.clientX - drag.x0) * 0.2, -40, 40); run(); } });
+  addEventListener("pointerup", () => { drag.on = false; });
+
+  // 2) наклон телефона: влево-вправо поворачивает сцену, к себе-от себя меняет высоту взгляда
+  const tilt = { az: 0, el: 0, base: null, on: false };
+  function onTilt(e) {
+    if (e.gamma == null || e.beta == null) return;
+    if (!tilt.base) tilt.base = { g: e.gamma, b: e.beta };
+    tilt.az = clamp((e.gamma - tilt.base.g) * 0.9, -22, 22);
+    tilt.el = clamp((e.beta - tilt.base.b) * -0.25, -8, 10);
+    if (!tilt.on) { tilt.on = true; document.body.classList.add("tilt-on"); }
+    run();
+  }
+  let listening = false;
+  const listen = () => { if (!listening) { listening = true; addEventListener("deviceorientation", onTilt); } };
+  window.enableTilt = async () => {
+    tilt.base = null;
+    const D = window.DeviceOrientationEvent;
+    if (!D) return false;
+    if (typeof D.requestPermission === "function") {
+      try { if ((await D.requestPermission()) !== "granted") { listen(); return tilt.on; } } catch (err) { listen(); return tilt.on; }
+    }
+    listen();
+    return true;
+  };
+  // на телефоне слушаем датчик сразу (Android обычно даёт его без запроса); iPhone — после нажатия кнопки
+  if (PHONE) listen();
+  // при повороте экрана — новая «нулевая» позиция
+  addEventListener("orientationchange", () => { tilt.base = null; });
+
   addEventListener("scroll", () => { fromScroll(); if (still.matches) requestAnimationFrame(tick); else run(); }, { passive: true });
   addEventListener("resize", () => { resize(); fromScroll(); run(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) run(); });
@@ -2842,6 +2911,7 @@ return { dot3, add3, sub3, mul3, len3, unit3, cross3, lerp3, viewOf, lightOf, sc
   }
   buttons.forEach((b) => b.addEventListener("click", () => {
     if (playing) stop(); else start();
+    if (window.enableTilt) window.enableTilt(); // то же нажатие разрешает наклон на iPhone
     try { localStorage.setItem("music", playing ? "on" : "off"); } catch (e) {}
   }));
 

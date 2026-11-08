@@ -139,6 +139,9 @@ main{position:relative;z-index:1}
 .panel h2{font-size:clamp(1.6rem,3.2vw,2.5rem);font-weight:800}
 .sub{font-style:italic;color:var(--muted);margin:10px 0 26px;font-size:1.08rem}
 .prose p{margin:0 0 1.1em}
+.ch{font-family:var(--display);font-weight:600;font-size:1.2rem;line-height:1.2;margin:38px 0 14px;display:flex;flex-direction:column;gap:6px}
+.prose>.ch:first-child{margin-top:4px}
+.ch span{font-family:var(--mono);font-weight:400;font-size:.74rem;letter-spacing:.1em;color:var(--ochre)}
 .drop-cap::first-letter{font-family:var(--display);font-weight:800;float:left;font-size:3.4em;line-height:.82;padding:6px 10px 0 0;color:var(--ochre)}
 
 .log{list-style:none;margin:30px 0 0;padding:0;border-left:2px solid var(--fg)}
@@ -201,6 +204,16 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
 .listen{margin-top:16px;margin-left:24px;display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ochre);background:none;border:1px solid var(--ochre);padding:8px 12px;cursor:pointer;border-radius:2px}
 .listen.on{background:var(--ochre);color:var(--bg)}
+.tilt{display:none}
+.drag-hint{display:none}
+/* Плавное появление блоков при прокрутке */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease,cubic-bezier(.2,.7,.2,1)),transform .8s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.photo.rv{transform:translateY(26px) rotate(-1.2deg)}
+.photo.rv.in{transform:none}
+.field.rv{transform:translateY(14px) scale(.98)}
+.field.rv.in{transform:none}
+@media (prefers-reduced-motion:reduce){.rv,.photo.rv,.field.rv{opacity:1;transform:none;transition:none}}
 .theme{position:fixed;top:14px;right:14px;z-index:3;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
   background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:7px 10px;cursor:pointer;border-radius:2px}
 
@@ -225,6 +238,10 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
   .music{top:auto;right:12px;bottom:max(14px,env(safe-area-inset-bottom));width:44px;height:44px;padding:0;justify-content:center;border-radius:50%;box-shadow:0 6px 18px -8px rgba(0,0,0,.5)}
   .music [data-music-label]{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .listen{margin-left:0}
+  .tilt{display:inline-flex;margin-top:12px;margin-right:8px;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--fg);background:none;border:1px solid var(--line);padding:8px 12px;border-radius:2px;cursor:pointer}
+  .tilt-on .tilt{border-color:var(--ochre);color:var(--ochre)}
+  .drag-hint{display:block;position:fixed;left:0;right:0;top:calc(50svh + 14px);text-align:center;font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);pointer-events:none;transition:opacity .4s}
+  body:not(.at-top) .drag-hint{opacity:0}
   /* подпись к сцене — узкая строка прямо под рисунком, только на первом экране */
   .hud{top:calc(50svh - 6px);bottom:auto;left:16px;right:16px;padding:0;border:0;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;font-size:.66rem;gap:2px}
   .hud>span:first-child{color:var(--muted)}
@@ -262,6 +279,7 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
 </div>
 <button class="music" type="button" data-music aria-pressed="false" aria-label="Фоновая музыка: степная тема на домбре"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span data-music-label>Музыка</span></button>
 <button class="theme" type="button" aria-label="Переключить тему">Тема</button>
+<div class="drag-hint" aria-hidden="true">← проведите пальцем по сцене →</div>
 <div class="hud" aria-live="off">
   <span><b>Рис. 1</b> · <span data-scene-era>Доссор 1911 — Жанажол 1978</span></span>
   <span class="r hint">разрез без масштаба</span>
@@ -277,6 +295,7 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
       <h1>Булекбаевы <span>Два поколения нефти</span></h1>
       <p class="lead">Отец строил первые промыслы Эмбы. Сын нашёл нефть под солью, глубже, чем до него решались искать.</p>
       <a class="scroll-cue" href="#eleu"><i></i>Вглубь разреза</a>
+      <button class="tilt" type="button" data-tilt>📱 Наклоните телефон</button>
       <button class="listen" type="button" data-music data-off="♪ Слушать степь" data-on="♪ Звучит домбра" aria-pressed="false"><span data-music-label>♪ Слушать степь</span></button>
     </div>
   </header>
@@ -360,12 +379,28 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
       <figure class="photo"><img src="assets/photos/portrait-late.jpg" width="419" height="567" alt="Зейнулла Елеуович Булекбаев в последние годы, в тёмном пиджаке и полосатом галстуке" loading="lazy"><figcaption><span>В последние годы</span><b>Фото 2</b></figcaption></figure>
     </div>
     <div class="prose">
-      <p class="drop-cap">Он родился 16 июня 1932 года в посёлке нефтепромысла Доссор, среди буровых вышек, на которых работал отец. В 1955 году окончил Московский нефтяной институт имени Губкина и вернулся на Эмбу техником по исследованию скважин.</p>
-      <p>Дальше всё шло по ступеням: геолог и старший геолог цеха бурения НПУ «Кошкар», главный геолог нефтепромысла Сагыз. В 1959 году он поступил в аспирантуру Института геологических наук, которым руководил академик Каныш Сатпаев. Научным руководителем стал Павел Авров, знавший недра Гурьевской и Актюбинской областей по полевой работе.</p>
-      <p>В 1962 году Зейнулла защитил диссертацию о перспективах нефтегазоносности восточной части Прикаспийской впадины. И пошёл не на кафедру, а снова в поле: главным геологом нефтеразведочной экспедиции треста «Актюбнефтеразведка».</p>
+      <h3 class="ch"><span>1932–1950</span>Мальчик из Доссора</h3>
+      <p class="drop-cap">Зейнулла родился 16 июня 1932 года в посёлке нефтепромысла Доссор Макатского района Гурьевской области. Отец, Елеу, к тому времени уже три года работал в тресте «Эмбанефть»: буровым рабочим геологоразведочной партии, потом заведующим конторой гужевого транспорта. Вышки, нефтяные амбары и верблюжьи обозы с водой — таким был мир его детства.</p>
+      <p>Ему было девять лет, когда началась война. Эмбинские промыслы в те годы работали на фронт, и нефть для мальчика с промысла с самого начала была не абстракцией, а делом, которым жила вся семья.</p>
+
+      <h3 class="ch"><span>1950–1955</span>Москва, Губкинский</h3>
+      <p>Учиться он поехал в Москву, в Московский нефтяной институт имени И. М. Губкина — главную школу нефтяников страны. В 1953 году, пока он был студентом, умер отец. В 1955 году Зейнулла окончил институт нефтяным геологом и вернулся домой, на Эмбу.</p>
+
+      <h3 class="ch"><span>1955–1959</span>Эмба: от техника до главного геолога</h3>
+      <p>Начинал он с самой земной работы — техником по исследованию скважин на промыслах Южной Эмбы. Потом стал геологом и старшим геологом цеха бурения НПУ «Кошкар». К 1957 году, в двадцать с небольшим, он уже главный геолог нефтепромысла Сагыз объединения «Казахстаннефть».</p>
+
+      <h3 class="ch"><span>1959–1962</span>Наука у Сатпаева</h3>
+      <p>В 1959 году он поступил в аспирантуру Института геологических наук Академии наук Казахской ССР, которым руководил академик Каныш Сатпаев. Научным руководителем стал Павел Авров, знавший недра Гурьевской и Актюбинской областей по многолетней полевой работе.</p>
+      <p>В 1962 году Зейнулла защитил диссертацию «Перспективы нефтегазоносности восточной части Прикаспийской впадины» и стал кандидатом геолого-минералогических наук. Но остался не на кафедре, а вернулся в поле.</p>
+
+      <h3 class="ch"><span>1962–1970</span>Актюбинск: смелая гипотеза</h3>
+      <p>Его назначили главным геологом нефтеразведочной экспедиции треста «Актюбнефтеразведка». Первым большим делом стал Кенкияк. Структуру выявили в 1958 году, в 1959-м открыли месторождение на соляном куполе: над солью нашли девять нефтяных горизонтов. Первый приток дала скважина К-34 бригады Мынжасара Шерниязова. Отчёт о подсчёте запасов Кенкияка готовил Булекбаев, и в 1964 году его утвердили.</p>
       <figure class="photo wide"><img src="assets/photos/field.jpg" width="495" height="334" alt="Зейнулла Елеуович в машине экспедиции разбирает карты вместе с коллегами" loading="lazy"><figcaption><span>В поле: над картами прямо в машине экспедиции</span><b>Фото 3</b></figcaption></figure>
-      <p>Главная его мысль была смелой. Под толщей соли, считал он, лежат древние палеозойские пласты, и подняты они выше, чем принято было думать. В 1965–1966 годах под его руководством трест пробурил параметрические скважины поперёк Уральской зоны. Догадка подтвердилась: продуктивность подсолевых отложений доказали на Кенкияке (1971), затем на Жанажоле (1978) и Алибекмоле (1986). Это было первое открытие подсолевой палеозойской нефти в Прикаспийской впадине.</p>
-      <p>31 июля 1978 года скважина № 4 на Жанажоле дала мощный приток из подсолевых отложений с глубины 2 800–2 894 метров. Именно её бурит вышка справа: прокрутите раздел — и долото пройдёт соль.</p>
+      <p>Главная его мысль была смелой. Под многокилометровой толщей соли, считал он, лежат древние палеозойские пласты, и подняты они выше, чем принято было думать, — значит, до них можно дотянуться буром. В 1965–1966 годах под его руководством трест пробурил параметрические скважины поперёк Уральской зоны, чтобы проверить это.</p>
+
+      <h3 class="ch"><span>1971–1986</span>Под солью</h3>
+      <p>Догадка подтвердилась. В 1971 году на Кенкияке доказали, что нефть есть и под солью. Это было первое открытие подсолевой палеозойской нефти в Прикаспийской впадине.</p>
+      <p>Затем был Жанажол, в 240 километрах к югу от Актобе. Поднятие здесь нащупала сейсморазведка ещё в 1960 году, а нефть нашлась в древних карбонатных толщах. В 1978 году подсоль дала мощный приток с глубины 2&nbsp;800–2&nbsp;894 метров. Именно эту скважину бурит вышка справа: прокрутите раздел — и долото пройдёт соль. В 1986 году поисковая скважина № 5 открыла Алибекмолу.</p>
     </div>
 
     <blockquote>О нём на западе Казахстана говорили, что он прикладывает ухо к земле и слышит, есть ли там нефть.</blockquote>
@@ -375,14 +410,35 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
       <div class="field"><div class="y">1964</div><h4>Кенкияк</h4><p>Утверждён подготовленный им подсчёт запасов (месторождение открыто в 1959-м)</p></div>
       <div class="field"><div class="y">1965</div><h4>Каратобе</h4><p>Нефть в надсолевых отложениях</p></div>
       <div class="field"><div class="y">1971</div><h4>Кенкияк, подсоль</h4><p>Продуктивность палеозоя под солью подтверждена</p></div>
-      <div class="field"><div class="y">1978</div><h4>Жанажол</h4><p>Скв. № 4, приток с 2&nbsp;800–2&nbsp;894&nbsp;м</p></div>
+      <div class="field"><div class="y">1978</div><h4>Жанажол</h4><p>Приток из подсоли с 2&nbsp;800–2&nbsp;894&nbsp;м</p></div>
       <div class="field"><div class="y">1986</div><h4>Алибекмола</h4><p>Поисковая скв. № 5; поиски начаты в 1983-м</p></div>
     </div>
 
     <div class="prose" style="margin-top:34px">
-      <p>Газ этих месторождений пришёл в дома Актобе, и город сделал его своим почётным гражданином. Он составил карту нефтегазоносности Актюбинской области, участвовал в составлении карт перспектив всей Прикаспийской впадины и прогноза нефтегазоносности Казахстана, стал соавтором справочника «Нефтяные и газовые месторождения Казахстана». Более ста статей, четыре монографии.</p>
-      <p>С 1999 года он преподавал в Актюбинском филиале КазНТУ, с 2000 года был главным геологом АО «Компания ГИС» и до последних дней консультировал нефтяников со всего бывшего Союза. Зейнулла Елеуович ушёл из жизни 18 декабря 2017 года в Актобе, на 86-м году.</p>
+      <h3 class="ch"><span>1970–1990-е</span>Газ для Актобе и карта области</h3>
+      <p>Газ открытых месторождений пришёл в дома Актобе, и город сделал его своим почётным гражданином. Он составил карту нефтегазоносности Актюбинской области, участвовал в картах перспектив всей Прикаспийской впадины и прогноза нефтегазоносности Казахстана. Стал соавтором справочников «Нефтяные и газовые месторождения Казахстана» (1993, переиздание 1999) и «Месторождения нефти и газа Казахстана» (1996).</p>
+      <p>За его плечами больше ста статей и четыре монографии, написанные вместе с академиком Р. Г. Гарецким, профессором Г. Ж. Жолтаевым и другими учёными.</p>
+
+      <h3 class="ch"><span>1999–2017</span>Учитель и консультант</h3>
+      <p>С 1999 года он преподавал в Актюбинском филиале КазНТУ и передавал опыт студентам. С 2000 года был главным геологом АО «Компания ГИС». До последних дней к нему за советом обращались нефтяники со всего бывшего Союза.</p>
+      <p>Зейнулла Елеуович ушёл из жизни 18 декабря 2017 года в Актобе, на 86-м году. Он прожил почти всю историю казахстанской нефти: родился на первом промысле Эмбы, а оставил после себя месторождения, которые работают до сих пор.</p>
     </div>
+
+    <ol class="log">
+      <li><time>16.06.1932</time><span>Родился в посёлке нефтепромысла Доссор</span></li>
+      <li><time>1955</time><span>Окончил МНИ им. Губкина, техник по исследованию скважин на Южной Эмбе</span></li>
+      <li><time>до 1957</time><span>Геолог, старший геолог цеха бурения НПУ «Кошкар»</span></li>
+      <li><time>1957</time><span>Главный геолог нефтепромысла Сагыз</span></li>
+      <li><time>1959–1962</time><span>Аспирантура ИГН АН КазССР, защита диссертации</span></li>
+      <li class="key"><time>с 1962</time><span>Главный геолог нефтеразведочной экспедиции «Актюбнефтеразведки»</span></li>
+      <li><time>1964</time><span>Утверждён его подсчёт запасов Кенкияка</span></li>
+      <li><time>1965–1966</time><span>Параметрические скважины поперёк Уральской зоны</span></li>
+      <li class="key"><time>1971</time><span>Первая подсолевая нефть Прикаспия — Кенкияк</span></li>
+      <li class="key"><time>1978</time><span>Жанажол</span></li>
+      <li class="key"><time>1986</time><span>Алибекмола</span></li>
+      <li><time>1999–2017</time><span>КазНТУ, АО «Компания ГИС», консультации</span></li>
+      <li><time>18.12.2017</time><span>Ушёл из жизни в Актобе</span></li>
+    </ol>
 
     <div class="awards" aria-label="Награды и звания">
       <span>Орден «Знак Почёта»</span>
@@ -392,7 +448,7 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
       <span>Кандидат геол.-минерал. наук · 1962</span>
     </div>
     <figure class="photo wide"><img src="assets/photos/award.jpg" width="960" height="541" alt="Зейнулле Елеуовичу вручают награду в большом зале, на лацкане его пиджака медаль" loading="lazy"><figcaption><span>Вручение награды</span><b>Фото 4</b></figcaption></figure>
-    <div class="note"><b>Об авторстве открытий</b>Открытия в Прикаспии — работа больших коллективов геологов, геофизиков и буровиков. В публикациях вклад в открытие Кенкияка, Жанажола и Алибекмолы отмечают и у других специалистов, например у И. Б. Дальяна. Даты Акжара и Каратобе приведены по очерку на myaktobe.kz; независимого подтверждения им пока не найдено.</div>
+    <div class="note"><b>Об авторстве открытий</b>Открытия в Прикаспии — работа больших коллективов геологов, геофизиков и буровиков. В публикациях вклад в открытие Кенкияка, Жанажола и Алибекмолы отмечают и у других специалистов, например у И. Б. Дальяна. Даты Акжара и Каратобе приведены по очерку на myaktobe.kz; независимого подтверждения им пока не найдено. Дату первого притока Жанажола источники называют по-разному: 8 марта 1978 года или 31 июля 1978 года (скважина № 4).</div>
   </section>
 
   <section class="panel" id="thread" data-scene="64,1,0,0,-40,0">
@@ -433,6 +489,17 @@ footer.panel li{margin-bottom:6px;overflow-wrap:anywhere}
     try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
   });
   const top = () => document.body.classList.toggle("at-top", scrollY < innerHeight * 0.5);
+  // плавное появление: заголовки, абзацы, фото, карточки
+  const items = document.querySelectorAll(".panel > *, .prose > *, .fields > .field, .diptych > .photo, .log > li, .tech > div");
+  if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const io = new IntersectionObserver((list) => list.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    items.forEach((el, i) => { if (el.classList.contains("prose") || el.classList.contains("fields") || el.classList.contains("diptych") || el.classList.contains("log") || el.classList.contains("tech")) return; el.classList.add("rv"); el.style.transitionDelay = (el.matches(".field, .log > li, .photo") ? (i % 6) * 60 : 0) + "ms"; io.observe(el); });
+  }
+  // кнопка «наклоните телефон» (на iPhone нужен запрос разрешения по нажатию)
+  document.querySelectorAll("[data-tilt]").forEach((b) => b.addEventListener("click", async () => {
+    const ok = window.enableTilt && (await window.enableTilt());
+    b.textContent = ok ? "📱 Наклон включён" : "📱 Датчик недоступен";
+  }));
   addEventListener("scroll", top, { passive: true }); top();
 })();
 </script>

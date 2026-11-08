@@ -119,6 +119,7 @@
   }
   buttons.forEach((b) => b.addEventListener("click", () => {
     if (playing) stop(); else start();
+    if (window.enableTilt) window.enableTilt(); // то же нажатие разрешает наклон на iPhone
     try { localStorage.setItem("music", playing ? "on" : "off"); } catch (e) {}
   }));
 

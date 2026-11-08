@@ -530,8 +530,11 @@
     const calm = still.matches;
     if (!calm) clock += dt;
     const ease = (a, b, tau) => (calm || Math.abs(b - a) < 2e-3 ? b : a + (b - a) * (1 - Math.exp(-dt / tau)));
-    state.az = ease(state.az, target.az + (calm || PHONE ? 0 : 1.6 * Math.sin(clock / 6)), 0.6);
-    state.el = ease(state.el, 30 + 4 * (state.zoom - 1), 0.6);
+    // палец и наклон телефона добавляются к повороту от прокрутки
+    if (!drag.on) drag.az *= Math.exp(-dt / 2.5); // отпущенная сцена плавно возвращается
+    const userAz = clamp(drag.az + tilt.az, -40, 40), userEl = clamp(tilt.el, -8, 10);
+    state.az = ease(state.az, clamp(target.az + userAz + (calm || PHONE ? 0 : 1.6 * Math.sin(clock / 6)), 24, 82), drag.on ? 0.08 : 0.5);
+    state.el = ease(state.el, 30 + 4 * (state.zoom - 1) + userEl, 0.4);
     state.zoom = ease(state.zoom, target.zoom, 0.6);
     state.fx = ease(state.fx, target.fx, 0.6);
     state.fy = ease(state.fy, target.fy, 0.6);
@@ -566,6 +569,55 @@
     if (calm) frame = 0;
   }
   const run = () => { if (!frame) { last = 0; frame = requestAnimationFrame(tick); } };
+  // ---------- Управление с телефона ----------
+  // 1) палец: провести по свободному месту (не по тексту) — сцена поворачивается
+  const drag = { on: false, x0: 0, y0: 0, az0: 0, az: 0, lock: "" };
+  const free = (el) => !el.closest(".panel, button, a, .hud");
+  addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    if (e.touches.length !== 1 || !free(e.target)) return;
+    Object.assign(drag, { on: true, x0: t.clientX, y0: t.clientY, az0: drag.az, lock: "" });
+    run();
+  }, { passive: true });
+  addEventListener("touchmove", (e) => {
+    if (!drag.on) return;
+    const t = e.touches[0], dx = t.clientX - drag.x0, dy = t.clientY - drag.y0;
+    if (!drag.lock && Math.hypot(dx, dy) > 8) drag.lock = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    if (drag.lock === "x") { drag.az = clamp(drag.az0 + dx * 0.25, -40, 40); run(); }
+  }, { passive: true });
+  addEventListener("touchend", () => { drag.on = false; }, { passive: true });
+  // мышью на компьютере — то же самое, если тянуть по сцене
+  addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse" || !free(e.target)) return; Object.assign(drag, { on: true, x0: e.clientX, y0: e.clientY, az0: drag.az, lock: "x" }); run(); });
+  addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" && drag.on) { drag.az = clamp(drag.az0 + (e.clientX - drag.x0) * 0.2, -40, 40); run(); } });
+  addEventListener("pointerup", () => { drag.on = false; });
+
+  // 2) наклон телефона: влево-вправо поворачивает сцену, к себе-от себя меняет высоту взгляда
+  const tilt = { az: 0, el: 0, base: null, on: false };
+  function onTilt(e) {
+    if (e.gamma == null || e.beta == null) return;
+    if (!tilt.base) tilt.base = { g: e.gamma, b: e.beta };
+    tilt.az = clamp((e.gamma - tilt.base.g) * 0.9, -22, 22);
+    tilt.el = clamp((e.beta - tilt.base.b) * -0.25, -8, 10);
+    if (!tilt.on) { tilt.on = true; document.body.classList.add("tilt-on"); }
+    run();
+  }
+  let listening = false;
+  const listen = () => { if (!listening) { listening = true; addEventListener("deviceorientation", onTilt); } };
+  window.enableTilt = async () => {
+    tilt.base = null;
+    const D = window.DeviceOrientationEvent;
+    if (!D) return false;
+    if (typeof D.requestPermission === "function") {
+      try { if ((await D.requestPermission()) !== "granted") { listen(); return tilt.on; } } catch (err) { listen(); return tilt.on; }
+    }
+    listen();
+    return true;
+  };
+  // на телефоне слушаем датчик сразу (Android обычно даёт его без запроса); iPhone — после нажатия кнопки
+  if (PHONE) listen();
+  // при повороте экрана — новая «нулевая» позиция
+  addEventListener("orientationchange", () => { tilt.base = null; });
+
   addEventListener("scroll", () => { fromScroll(); if (still.matches) requestAnimationFrame(tick); else run(); }, { passive: true });
   addEventListener("resize", () => { resize(); fromScroll(); run(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) run(); });
